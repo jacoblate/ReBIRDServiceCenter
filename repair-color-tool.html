@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arc'teryx Repair — Color Selection</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --white: #ffffff;
+    --border: #e2e0da;
+    --border-dark: #c8c5bc;
+    --text: #1a1a18;
+    --text-muted: #6b6960;
+    --text-light: #9b9890;
+    --accent: #1a1a18;
+    --red: #c0392b;
+    --warning-bg: #fef9ec;
+    --warning-border: #f0d080;
+    --warning-text: #7a5c00;
+    --tag-bg: #eeede9;
+    --radius: 8px;
+    --radius-sm: 4px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .site-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+  }
+  .site-header-left { display: flex; align-items: center; gap: 16px; }
+  .brand { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+  .brand-divider { width: 1px; height: 18px; background: var(--border-dark); }
+  .brand-sub { font-size: 12px; color: var(--text-muted); font-weight: 400; letter-spacing: 0.04em; }
+
+  .tab-nav { display: flex; gap: 2px; background: var(--tag-bg); border-radius: 6px; padding: 3px; }
+  .tab-btn {
+    padding: 6px 14px; border: none; border-radius: 4px; background: transparent;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+    letter-spacing: 0.02em; white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.5); }
+  .tab-btn.active { background: var(--white); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-inner { max-width: 860px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  .page-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .page-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.6; }
+
+  .field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; }
+
+  .search-wrap { position: relative; margin-bottom: 16px; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 16px; pointer-events: none; line-height: 1; }
+  .search-input {
+    width: 100%; background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px 10px 36px;
+    font-family: 'Inter', sans-serif; font-size: 14px; color: var(--text);
+    outline: none; transition: border-color 0.15s; box-shadow: var(--shadow);
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-light); }
+
+  .model-list { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); max-height: 260px; overflow-y: auto; box-shadow: var(--shadow); }
+  .model-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border);
+    transition: background 0.1s; gap: 12px;
+  }
+  .model-item:last-child { border-bottom: none; }
+  .model-item:hover { background: var(--bg); }
+  .model-item.selected { background: #f0f4ff; }
+  .model-name { font-size: 13px; font-weight: 500; }
+  .model-location { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .model-tag { font-size: 11px; background: var(--tag-bg); border: 1px solid var(--border); border-radius: 3px; padding: 2px 7px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+  .empty-list { padding: 24px; text-align: center; color: var(--text-light); font-size: 13px; }
+
+  .result-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden; margin-top: 20px; }
+  .result-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 48px 24px; text-align: center; }
+  .result-empty-icon { font-size: 28px; opacity: 0.35; }
+  .result-empty-title { font-size: 15px; font-weight: 500; color: var(--text-muted); }
+  .result-empty-sub { font-size: 13px; color: var(--text-light); max-width: 300px; }
+
+  .result-header { padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .result-model-name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .result-zipper-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .result-zipper-label { font-size: 12px; color: var(--text-muted); }
+  .result-zipper-type { font-size: 12px; background: var(--white); border: 1px solid var(--border-dark); border-radius: 3px; padding: 2px 8px; font-weight: 500; }
+  .result-location-tag { font-size: 11px; color: var(--text-muted); background: var(--tag-bg); border: 1px solid var(--border); border-radius: 3px; padding: 2px 7px; }
+
+  .result-body { padding: 20px; }
+  .result-body-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 14px; }
+
+  .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .color-chip { display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; transition: border-color 0.15s; }
+  .color-chip:hover { border-color: var(--border-dark); }
+  .color-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.12); }
+  .color-chip-name { font-size: 12px; font-weight: 500; flex: 1; min-width: 0; }
+  .color-chip-code { font-size: 10px; color: var(--text-light); font-family: monospace; }
+
+  .result-note { margin-top: 14px; font-size: 12px; color: var(--text-muted); padding-top: 14px; border-top: 1px solid var(--border); }
+  .result-note strong { color: var(--text); }
+
+  .warning-banner {
+    background: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: var(--radius-sm);
+    padding: 12px 16px; display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px; color: var(--warning-text); line-height: 1.5; margin-bottom: 24px;
+  }
+  .warning-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  .step-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .step-num { width: 22px; height: 22px; background: var(--text); color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+  .step-label { font-size: 13px; font-weight: 600; }
+
+  .fabric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 28px; }
+  .fabric-btn { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer; text-align: left; transition: all 0.15s; box-shadow: var(--shadow); }
+  .fabric-btn:hover { border-color: var(--border-dark); }
+  .fabric-btn.selected { border-color: var(--text); background: var(--text); color: var(--white); }
+  .fabric-btn-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .fabric-btn-sub { font-size: 11px; color: var(--text-muted); }
+  .fabric-btn.selected .fabric-btn-sub { color: rgba(255,255,255,0.6); }
+
+  .repanel-result-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden; margin-bottom: 28px; }
+  .repanel-result-header { padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .repanel-result-title { font-size: 13px; font-weight: 600; }
+  .repanel-result-body { padding: 20px; }
+  .repanel-result-empty { padding: 32px; text-align: center; color: var(--text-light); font-size: 13px; }
+  .repanel-note { font-size: 12px; color: var(--text-muted); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); line-height: 1.6; }
+
+  .products-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 16px; }
+  .products-card-header { padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--bg); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+  .products-card-body { padding: 16px 18px; }
+  .products-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .product-tag { font-size: 12px; background: var(--tag-bg); border: 1px solid var(--border); border-radius: 3px; padding: 3px 9px; color: var(--text); }
+  .product-tag.insulated { background: #fdf0ee; border-color: #f0c8c2; color: var(--red); }
+  .products-footnote { font-size: 11px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; }
+  .products-footnote .red { color: var(--red); }
+  .section-sub-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 8px; }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-left">
+    <span class="brand">Arc'teryx</span>
+    <div class="brand-divider"></div>
+    <span class="brand-sub">Repair Color Selection</span>
+  </div>
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('zipper', this)">Zipper Color</button>
+    <button class="tab-btn" onclick="switchTab('repanel', this)">Re-panel</button>
+  </div>
+</header>
+
+<!-- PAGE 1: ZIPPER -->
+<div class="page active" id="page-zipper">
+  <div class="page-inner">
+    <p class="page-title">Zipper Color Selection</p>
+    <p class="page-desc">Find the product model to identify its zipper type and available replacement colors. Pull the matching swatches from the drawer to present to the guest.</p>
+    <div class="field-label">Select Product Model</div>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input class="search-input" id="model-search" type="text" placeholder="Search by model name…" oninput="filterModels()" autocomplete="off">
+    </div>
+    <div class="model-list" id="model-list"></div>
+    <div class="result-card" id="result-card">
+      <div class="result-empty">
+        <div class="result-empty-icon">🧰</div>
+        <div class="result-empty-title">Select a Model</div>
+        <div class="result-empty-sub">Choose a product from the list to see its zipper type and available replacement colors.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: REPANEL -->
+<div class="page" id="page-repanel">
+  <div class="page-inner">
+    <p class="page-title">Gore-Tex Re-panel</p>
+    <p class="page-desc">Use this tool to recommend a panel color for a Gore-Tex jacket based on the fabric weight. This is a suggested recommendation only — final approval requires physical assessment at the repair center.</p>
+
+    <div class="warning-banner">
+      <span class="warning-icon">⚠</span>
+      <span>This recommendation is not a guarantee of repair. The jacket must be physically assessed at the repair center after being sent in. <strong>Hood and collar panels cannot be re-paneled.</strong></span>
+    </div>
+
+    <div class="step-row">
+      <div class="step-num">1</div>
+      <div class="step-label">Identify the Fabric Weight</div>
+    </div>
+    <div class="fabric-grid" id="fabric-grid"></div>
+
+    <div class="repanel-result-card">
+      <div class="repanel-result-header">
+        <div class="repanel-result-title">Recommended Colors for Selected Fabric</div>
+      </div>
+      <div class="repanel-result-body" id="repanel-result-body">
+        <div class="repanel-result-empty">Select a fabric weight above to see recommended colors.</div>
+      </div>
+    </div>
+
+    <div class="warning-banner">
+      <span class="warning-icon">⚠</span>
+      <span>Hood and collar panels cannot be re-paneled — all other panels (front, back, sleeves, pocket bags) are eligible.</span>
+    </div>
+
+    <div class="products-card">
+      <div class="products-card-header">Eligible Product Lines</div>
+      <div class="products-card-body">
+        <div style="margin-bottom:16px;">
+          <div class="section-sub-label">Gore-Tex Hard Shell Jackets</div>
+          <div class="products-list" id="hardshell-list"></div>
+        </div>
+        <div>
+          <div class="section-sub-label">2L Synthetic / Down Insulated Gore-Tex</div>
+          <div class="products-list" id="insulated-list"></div>
+        </div>
+        <div class="products-footnote">
+          Items in <span class="red">red</span> are 2-Layer insulated Gore-Tex products. These are listed for reference — their repair eligibility requires additional assessment. Most panels including front, back, sleeves, and pocket bags are applicable.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const modelData = [
+  ["Vision Comp","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Atom LT Vest","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Zip Cardigan","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Atom LT Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Acto MX Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Delta LT Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Gamma SL Hybrid","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Acto Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Squamish Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Wraith Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Atom SV Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Tenquille Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Nuclei Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Fortrez Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Thorium AR","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Epsilon LT","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["CMH Atom AR","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Arenite Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Konseal Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cold WX Jacket LT","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Thorium SV Vest","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Solo Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Squamish Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Thorium SV Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium SV Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Isogon MX Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium SV Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Yola Coat","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium LT Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium LT Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium SL Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium SL Vest","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Delta MX Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Kyanite LT Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Nodin Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium SL Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Kyanite LT Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Cerium Vest","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Delta Hybrid Hoody","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Delta Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Norvan SL Insulated Vest","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["Rethel Jacket","Main","Vislon #3 Uncoated, 34\" (Auto-Lock)","20"],
+  ["CMH Client Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Alpha SV Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Alpine Guide Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Ski Guide Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Rush Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Beta AR Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["SMU F18 - Heli Guide","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Alpha AR","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Beta Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["CNY Alpha SV Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Andessa Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Macai Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Meta Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Mtn. Guide Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["CMH Neos Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["SMU - CANSOF","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Theta AR","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Patrol Alpha Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Sawyer Coat","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Scimitar Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Sidewinder Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Modon Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Sentinel Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Beta SV Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Radsten Insulated","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Alpha Jacket LT (2023)","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Fraser Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Caden Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Sentinel AR Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Sabre Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Keibo Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Theta SVX","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Lithic Comp Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Tantalus Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Camosun Parka (2015/2017)","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Stikine Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Sentinel LT Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Sabre LT Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Fissile Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["CMH Nomad Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Rush IS Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["Incendia Jacket","Main","Vislon #5 Coated, 34\" (Non-Locking)","20"],
+  ["All dynamic fabric inside pockets","Dynamic Fabric Inside Pockets","Coil #3 Uncoated (Spool)","5"],
+  ["A2B Commuter Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Police Softshell Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Gamma AR Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Maverick AR Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Gamma SV Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Delta AR Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Sigma LT Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Gamma SV Vest","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Venta LT Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Sigma AR Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Delta SV Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Gamma MX Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Gamma LT Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Justice Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Zeta Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Venta AR Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Venta Vest","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Justice Utility Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Alpha Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Maverick SV Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Fission SV Vest","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Fission LT Vest","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Easyrider Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Alpha Comp Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Bravo Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Gamma SV Patrol","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Kappa AR Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Venta SV Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Matador Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Dually Belay Jacket (2007)","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Freelance Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Tau Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Drac Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Combat Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Minotaur Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Sierra Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Hades Vest","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Kappa SV Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Fusion Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Thorium AR Jacket","Main","Vislon #5 Uncoated, 31\" (Auto-Lock)","10"],
+  ["Thorium AR Jacket (2-Way)","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Therme Parka","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Khuno Parka","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Beta AR","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Patrol Jacket","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Dually Belay Parka","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Parks Jacket","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Kappa Hoody","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Level 8 Jacket","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Smok Jacket","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Ceres Jacket/Parka","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Thorsen Parka","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Andra LT IS Coat","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Thorium Xlong Parka","Main","Vislon #5 Uncoated, 2-Way, 36\" (Auto-Lock)","10"],
+  ["Fission SV Jacket","Main","Vislon #5 Coated 2-Way, 33\" (Non-Locking)","5"],
+  ["Alpha Parka","Main","Vislon #5 Coated 2-Way, 33\" (Non-Locking)","5"],
+  ["Alpha IS Jacket","Main","Vislon #5 Coated 2-Way, 33\" (Non-Locking)","5"],
+  ["Dume Coat","Main","Vislon #5 Coated 2-Way, 33\" (Non-Locking)","5"],
+  ["Firebee AR Parka","Main","Vislon #5 Coated 2-Way, 33\" (Non-Locking)","5"],
+  ["Fission SL Jacket","Main","Vislon #5 Coated 2-Way, 33\" (Non-Locking)","5"],
+  ["Andra Coat","Main","Vislon #5 Coated 2-Way, 33\" (Non-Locking)","5"],
+  ["Mistaya Coat","Main","Vislon #5 Coated 2-Way, 33\" (Non-Locking)","5"],
+  ["All hand/pit/arm pocket locations (coated)","Hand/Pit/Arm Pockets (Coated)","Coil #3 Coated (Spool)","10"],
+  ["GoreTex 3 Layer SL and FL Products","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Visio FL","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Alpha SL","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Beta FL","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Actuator Hooded","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Alpha SL Hybrid","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Tecto FL","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Alpha Comp Hoody","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Beta LT Hybrid","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Norvan Jacket","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Norvan SL Hoody","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Procline Comp Jacket","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Arris Jacket","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Zeta LT","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Shashka Jacket","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Nuclei AR","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Sphene Jacket","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Rush LT","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Zeta AR","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Imbric Jacket","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Airah Jacket","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Tauri Jacket","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Zeta FL","Main","Vislon #3 Coated, 34\" (Non-Locking)","5"],
+  ["Solano Coat","Main","Vislon #3 Uncoated 2-Way, 36\" (Auto-Lock)","5"],
+  ["Nuri Coat","Main","Vislon #3 Uncoated 2-Way, 36\" (Auto-Lock)","5"],
+  ["Atom LT (2023)","Main","Vislon #3 Uncoated 2-Way, 36\" (Auto-Lock)","5"],
+  ["Veilance","Main","Coil #3 Uncoated, 31\" (Auto-Lock)","5"],
+  ["Delta MX","Main","Coil #3 Uncoated, 31\" (Auto-Lock)","5"],
+  ["Kyanite LT","Main","Coil #3 Uncoated, 31\" (Auto-Lock)","5"],
+  ["Incendo Jacket","Main","Coil #3 Uncoated, 31\" (Auto-Lock)","5"],
+  ["Cita Jacket","Main","Coil #3 Uncoated, 31\" (Auto-Lock)","5"],
+  ["Covert Hoody","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Covert Cardigan","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Straibo Jacket","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Straibo Hoody","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Haeven Hoody","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Eldora Hoody","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Prost Hoody","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Karda Jacket","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Lorum Jacket","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Elda Coat","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Slocan Hoody","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Kenai Hoody","Main","Coil #5 Uncoated, 32\" (Non-Locking)","5"],
+  ["Covert","Pockets and 1/2 Zips","Coil #3 Uncoated (Spool)","5"],
+  ["Gamma","Pockets and 1/2 Zips","Coil #3 Uncoated (Spool)","5"],
+  ["Pallisade","Pockets and 1/2 Zips","Coil #3 Uncoated (Spool)","5"],
+  ["Rho LT","Pockets and 1/2 Zips","Coil #3 Uncoated (Spool)","5"],
+  ["Blaze Comp","Pockets and 1/2 Zips","Coil #3 Uncoated (Spool)","5"],
+  ["Covert Hoody Pullover","Pockets and 1/2 Zips","Coil #3 Uncoated (Spool)","5"],
+  ["Delta LT Zip Neck","Pockets and 1/2 Zips","Coil #3 Uncoated (Spool)","5"],
+  ["Switchback Pant","Pockets and 1/2 Zips","Coil #3 Uncoated (Spool)","5"],
+  ["Cairn Zip Nec SS","Pockets and 1/2 Zips","Coil #3 Uncoated (Spool)","5"],
+  ["Atom LT Pants","Main","Vislon #3 Uncoated, 43\" (Auto-Lock)","1"],
+  ["Nuclei Pant","Main","Vislon #3 Uncoated, 43\" (Auto-Lock)","1"],
+  ["SMU-CANSOF-LMLIP","Main","Vislon #3 Uncoated, 43\" (Auto-Lock)","1"],
+  ["Thorium Parka","Main","Vislon #5 Uncoated 2-Way, 50\" (Auto-Lock)","1"],
+  ["Seyla Coat","Main","Vislon #5 Uncoated 2-Way, 50\" (Auto-Lock)","1"],
+  ["Piedmont Coat","Main","Vislon #5 Uncoated 2-Way, 50\" (Auto-Lock)","1"],
+  ["Fission LT/AF Pants","Main","Vislon #5 Uncoated 2-Way, 50\" (Auto-Lock)","1"],
+  ["Kappa Pants","Main","Vislon #5 Uncoated 2-Way, 50\" (Auto-Lock)","1"],
+  ["Cold WX Pants SV","Main","Vislon #5 Uncoated 2-Way, 50\" (Auto-Lock)","1"],
+  ["Thorium AR Coat","Main","Vislon #5 Uncoated 2-Way, 50\" (Auto-Lock)","1"],
+  ["Beta SL Pants","Main","Coil #5 Coated 2-Way, 54\" (Non-Locking)","1"],
+  ["Alpha AR Pants","Main","Coil #5 Coated 2-Way, 54\" (Non-Locking)","1"],
+  ["Beta SV Bib","Main","Coil #5 Coated 2-Way, 54\" (Non-Locking)","1"],
+  ["Alpha LT Bib","Main","Coil #5 Coated 2-Way, 54\" (Non-Locking)","1"],
+  ["Delta Coat","Main","Coil #5 Coated 2-Way, 54\" (Non-Locking)","1"],
+  ["Alpha LT Pants","Main","Coil #5 Coated 2-Way, 54\" (Non-Locking)","1"],
+  ["Alpha SL Pants","Main","Coil #5 Coated 2-Way, 54\" (Non-Locking)","1"],
+  ["Alpha LT 1/2 Bib","Main","Coil #5 Coated 2-Way, 54\" (Non-Locking)","1"],
+  ["Theta SV Bib","Main","Coil #5 Coated 2-Way, 54\" (Non-Locking)","1"],
+  ["Beta AR Pant","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Alpha SV Bib","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Theta AR Jacket","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Beta LT Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Theta SK Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Minuteman Bib","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Theta LT Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Sidewinder SV Jacket","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Gamma Salopette","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Javelin AR Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Stingray Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["CMH Neos Bib","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Sidewinder AR Jacket","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Heli Guide Jacket","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Titan Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Fury AR Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Venta Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Firebee AR Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Scimitar Bib","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Sabre Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Micon Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Volta Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Ventii Pants","Closed End Zippers","Coil #5 Coated (Spool)","1"],
+  ["Gamma AR Jacket","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Diplomat ST Jacket","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Gamma SK Pant","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Gamma MX Hoody","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Alpha Bib Pants","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Ceres Jacket","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Assault Shirt AR","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Procline FL Pant","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Ceres SV Parka","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Recce Shirt AR","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Assault Coverall FR","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Cold WX Bib Pant SVX","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Cold WX Parka SVX","Hand Pockets","Coil #5 Uncoated (Spool)","1"],
+  ["Gamma AR","Main","Coil #4.5 Uncoated, 7\" (Semi-Lock)","1"],
+  ["Gamma SV","Main","Coil #4.5 Uncoated, 7\" (Semi-Lock)","1"],
+  ["Kappa AR","Main","Coil #4.5 Uncoated, 7\" (Semi-Lock)","1"],
+  ["Alpha Comp","Main","Coil #4.5 Uncoated, 7\" (Semi-Lock)","1"],
+  ["Combat Pants","Main","Coil #4.5 Uncoated, 7\" (Semi-Lock)","1"],
+  ["Bravo Pants","Main","Coil #4.5 Uncoated, 7\" (Semi-Lock)","1"],
+];
+
+const colorsByCount = {
+  "20": [
+    {name:"Euphoria",code:"803",hex:"#c44ea0"},{name:"Yukon",code:"241",hex:"#b8860b"},
+    {name:"Edziza",code:"056",hex:"#2e6e4e"},{name:"Dynasty",code:"819",hex:"#8b1a5e"},
+    {name:"Heritage",code:"519",hex:"#3d5a80"},{name:"Techno",code:"258",hex:"#00a8cc"},
+    {name:"Mesmer",code:"113",hex:"#7b2d8b"},{name:"Vitality",code:"918",hex:"#e83838"},
+    {name:"Black Sapphire",code:"196",hex:"#1a2a4a"},{name:"Blue Tetra",code:"349",hex:"#3d7ebf"},
+    {name:"Wheatgrass",code:"052",hex:"#7a9a36"},{name:"Pytheas",code:"017",hex:"#004466"},
+    {name:"Black",code:"580",hex:"#1a1a1a"},{name:"Graphite",code:"156",hex:"#5a5a5a"},
+    {name:"Solitude",code:"337",hex:"#94a3bb"},{name:"Arctic Silk",code:"841",hex:"#e8e0d0"},
+    {name:"Crocodile",code:"242",hex:"#5d6b3e"},{name:"Ranger Green",code:"305",hex:"#4a5a3a"},
+    {name:"Wolf",code:"306",hex:"#8a8a8a"},
+  ],
+  "10": [
+    {name:"Euphoria",code:"803",hex:"#c44ea0"},{name:"Yukon",code:"241",hex:"#b8860b"},
+    {name:"Edziza",code:"056",hex:"#2e6e4e"},{name:"Dynasty",code:"819",hex:"#8b1a5e"},
+    {name:"Vitality",code:"918",hex:"#e83838"},{name:"Black Sapphire",code:"196",hex:"#1a2a4a"},
+    {name:"Black",code:"580",hex:"#1a1a1a"},{name:"Graphite",code:"156",hex:"#5a5a5a"},
+    {name:"Solitude",code:"337",hex:"#94a3bb"},{name:"Arctic Silk",code:"841",hex:"#e8e0d0"},
+  ],
+  "5": [
+    {name:"Yukon",code:"241",hex:"#b8860b"},{name:"Black Sapphire",code:"196",hex:"#1a2a4a"},
+    {name:"Black",code:"580",hex:"#1a1a1a"},{name:"Graphite",code:"156",hex:"#5a5a5a"},
+    {name:"Arctic Silk",code:"841",hex:"#e8e0d0"},
+  ],
+  "1": [{name:"Black",code:"580",hex:"#1a1a1a"}]
+};
+
+const fabricData = [
+  { label:"40D", sub:"5 colors available", colors:[
+    {name:"Heritage",code:"519",hex:"#3d5a80"},{name:"Vitality",code:"918",hex:"#e83838"},
+    {name:"Black Sapphire",code:"196",hex:"#1a2a4a"},{name:"Black",code:"580",hex:"#1a1a1a"},
+    {name:"Graphite",code:"156",hex:"#5a5a5a"},
+  ]},
+  { label:"80D", sub:"10 colors available", colors:[
+    {name:"Heritage",code:"519",hex:"#3d5a80"},{name:"Edziza",code:"056",hex:"#2e6e4e"},
+    {name:"Yukon",code:"241",hex:"#b8860b"},{name:"Euphoria",code:"803",hex:"#c44ea0"},
+    {name:"Vitality",code:"918",hex:"#e83838"},{name:"Arctic Silk",code:"841",hex:"#e8e0d0"},
+    {name:"Black Sapphire",code:"196",hex:"#1a2a4a"},{name:"Black",code:"580",hex:"#1a1a1a"},
+    {name:"Graphite",code:"156",hex:"#5a5a5a"},{name:"Solitude",code:"337",hex:"#94a3bb"},
+  ]},
+  { label:"150D", sub:"1 color available", colors:[{name:"Black",code:"580",hex:"#1a1a1a"}]},
+  { label:"2L 50D", sub:"Insulated re-panel · 1 color", colors:[{name:"Black",code:"580",hex:"#1a1a1a"}]},
+];
+
+const hardshellModels = ["Alpha","Beta","Zeta","Sabre","Rush","Javelin","Scorpion","Procline Comp","Fraser","Sayer","Stinger","Scimitar","Vertic"];
+const insulatedModels = ["Fission SV","Fissile","Macai","Airah","Tauri","Kappa","Thorsen","Stikine","Ceres SV","Andessa","Tiya","Volta","Firebee","Ventii","Koda","Shuksan","Alpha IS","Camosun","Solano"];
+
+function renderModelList(data) {
+  const el = document.getElementById('model-list');
+  if (!data.length) { el.innerHTML = `<div class="empty-list">No models match your search.</div>`; return; }
+  el.innerHTML = data.map(row => `
+    <div class="model-item" onclick="selectModel(${JSON.stringify(row).replace(/"/g,'&quot;')})">
+      <div>
+        <div class="model-name">${row[0]}</div>
+        <div class="model-location">${row[1]}</div>
+      </div>
+      <span class="model-tag">${row[2]}</span>
+    </div>`).join('');
+}
+
+function filterModels() {
+  const q = document.getElementById('model-search').value.toLowerCase();
+  const filtered = q ? modelData.filter(r => r[0].toLowerCase().includes(q) || r[2].toLowerCase().includes(q) || r[1].toLowerCase().includes(q)) : modelData;
+  renderModelList(filtered);
+  document.getElementById('result-card').innerHTML = `<div class="result-empty"><div class="result-empty-icon">🧰</div><div class="result-empty-title">Select a Model</div><div class="result-empty-sub">Choose a product from the list to see its zipper type and available replacement colors.</div></div>`;
+}
+
+function selectModel(row) {
+  document.querySelectorAll('.model-item').forEach(el => {
+    el.classList.toggle('selected', el.querySelector('.model-name').textContent === row[0] && el.querySelector('.model-location').textContent === row[1]);
+  });
+  const colors = colorsByCount[row[3]] || [];
+  const chips = colors.map(c => `<div class="color-chip"><span class="color-dot" style="background:${c.hex}"></span><span class="color-chip-name">${c.name}</span><span class="color-chip-code">${c.code}</span></div>`).join('');
+  const noteText = row[3] === "1" ? "Only <strong>Black (580)</strong> is available for this zipper type." : `Pull swatches <strong>${colors.map(c=>c.code).join(', ')}</strong> from the drawer to present to the guest.`;
+  document.getElementById('result-card').innerHTML = `
+    <div class="result-header">
+      <div class="result-model-name">${row[0]}</div>
+      <div class="result-zipper-row">
+        <span class="result-zipper-label">Zipper:</span>
+        <span class="result-zipper-type">${row[2]}</span>
+        <span class="result-location-tag">${row[1]}</span>
+      </div>
+    </div>
+    <div class="result-body">
+      <div class="result-body-label">${row[3] === "1" ? "1 color available" : row[3]+" colors available"}</div>
+      <div class="color-grid">${chips}</div>
+      <div class="result-note">${noteText}</div>
+    </div>`;
+}
+
+function renderFabricGrid() {
+  document.getElementById('fabric-grid').innerHTML = fabricData.map((f, i) => `
+    <button class="fabric-btn" onclick="selectFabric(${i})" id="fb-${i}">
+      <div class="fabric-btn-name">${f.label}</div>
+      <div class="fabric-btn-sub">${f.sub}</div>
+    </button>`).join('');
+}
+
+function selectFabric(idx) {
+  document.querySelectorAll('.fabric-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById(`fb-${idx}`).classList.add('selected');
+  const f = fabricData[idx];
+  const chips = f.colors.map(c => `<div class="color-chip"><span class="color-dot" style="background:${c.hex}"></span><span class="color-chip-name">${c.name}</span><span class="color-chip-code">${c.code}</span></div>`).join('');
+  document.getElementById('repanel-result-body').innerHTML = `
+    <div class="color-grid">${chips}</div>
+    <div class="repanel-note">Pull swatches <strong>${f.colors.map(c=>c.code).join(', ')}</strong> from the drawer. This is a recommendation — final color approval is confirmed at the repair center.</div>`;
+}
+
+function renderEligibleProducts() {
+  document.getElementById('hardshell-list').innerHTML = hardshellModels.map(m => `<span class="product-tag">${m}</span>`).join('');
+  document.getElementById('insulated-list').innerHTML = insulatedModels.map(m => `<span class="product-tag insulated">${m}</span>`).join('');
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+renderModelList(modelData);
+renderFabricGrid();
+renderEligibleProducts();
+</script>
+</body>
+</html>
